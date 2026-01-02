@@ -1,0 +1,88 @@
+name: Deploy Event-Driven Pipeline
+
+# ============================================
+# CI/CD Pipeline for AWS Event-Driven Pipeline
+# ============================================
+# This workflow automatically deploys the infrastructure
+# when code is pushed to the main branch.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual triggering
+
+env:
+  AWS_REGION: us-east-1
+  TERRAFORM_VERSION: 1.6.0
+
+jobs:
+  deploy:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Step 2: Configure AWS credentials
+      # These should be set as GitHub Secrets:
+      # - AWS_ACCESS_KEY_ID
+      # - AWS_SECRET_ACCESS_KEY
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      # Step 3: Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      
+      # Step 4: Prepare Lambda deployment packages
+      - name: Prepare Lambda packages
+        run: |
+          echo "Preparing Lambda deployment packages..."
+          cd lambda
+          
+          # Create zip files for Lambda functions
+          # Note: Lambda functions will be packaged by Terraform
+          # This step ensures the Python files are ready
+          echo "Lambda functions ready for deployment"
+      
+      # Step 5: Terraform Init
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
+      
+      # Step 6: Terraform Validate
+      - name: Terraform Validate
+        working-directory: ./terraform
+        run: terraform validate
+      
+      # Step 7: Terraform Format Check
+      - name: Terraform Format Check
+        working-directory: ./terraform
+        run: terraform fmt -check
+      
+      # Step 8: Terraform Plan
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: terraform plan -out=tfplan
+      
+      # Step 9: Terraform Apply
+      - name: Terraform Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve tfplan
+      
+      # Step 10: Display outputs
+      - name: Terraform Output
+        working-directory: ./terraform
+        run: terraform output
+        continue-on-error: true
+

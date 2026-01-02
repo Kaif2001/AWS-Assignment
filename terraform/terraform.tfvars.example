@@ -1,0 +1,10 @@
+# ============================================
+# Terraform Variables Example
+# ============================================
+# Copy this file to terraform.tfvars and update with your values
+# terraform.tfvars is ignored by git for security
+
+aws_region   = "us-east-1"
+project_name = "event-driven-pipeline"
+environment  = "dev"
+
