@@ -16,7 +16,7 @@ The focus is on understanding:
 3. Lambda logs the event and confirms processing
 4. Logs are visible in CloudWatch
 
-## Files Included
+## Files Included 
 
 ### main.tf
 - Terraform configuration
